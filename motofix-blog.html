@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MOTOFIX Project Blog</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'moto-blue': {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+              400: '#60a5fa', 500: '#3b82f6', 600: '#1e40af', 700: '#1e3a8a',
+              800: '#172554', 900: '#0f172a'
+            },
+            'moto-yellow': {
+              50: '#fefce8', 100: '#fef9c3', 200: '#fef08a', 300: '#fde047',
+              400: '#facc15', 500: '#eab308', 600: '#ca8a04', 700: '#a16207'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Inter', system-ui, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .gradient-hero { background: linear-gradient(135deg, #1e3a8a 0%, #172554 50%, #0f172a 100%); }
+    .gradient-card { background: linear-gradient(145deg, #1e40af 0%, #1e3a8a 100%); }
+    .yellow-glow { box-shadow: 0 0 30px rgba(250, 204, 21, 0.3); }
+    .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+    .slide-in { animation: slideIn 0.5s ease-out forwards; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .stagger-1 { animation-delay: 0.1s; }
+    .stagger-2 { animation-delay: 0.2s; }
+    .stagger-3 { animation-delay: 0.3s; }
+    .stagger-4 { animation-delay: 0.4s; }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #1e3a8a; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #facc15; border-radius: 3px; }
+    .text-gradient { background: linear-gradient(90deg, #facc15, #fde047); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .btn-primary { background: linear-gradient(135deg, #facc15 0%, #eab308 100%); color: #172554; font-weight: 600; transition: all 0.2s ease; }
+    .btn-primary:hover { background: linear-gradient(135deg, #fde047 0%, #facc15 100%); transform: scale(1.02); }
+    .input-field { background: rgba(30, 58, 138, 0.5); border: 1px solid rgba(250, 204, 21, 0.2); transition: all 0.2s ease; }
+    .input-field:focus { border-color: #facc15; box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1); outline: none; }
+    .modal-overlay { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); }
+    .toast { animation: toastIn 0.3s ease-out; }
+    @keyframes toastIn { from { opacity:0; transform:translateX(100%); } to { opacity:1; transform:translateX(0); } }
+    .phase-badge { font-size: 0.65rem; letter-spacing: 0.05em; }
+    .upload-zone { border: 2px dashed rgba(250, 204, 21, 0.3); transition: all 0.2s ease; cursor: pointer; }
+    .upload-zone:hover { border-color: #facc15; background: rgba(250, 204, 21, 0.05); }
+    body { box-sizing: border-box; }
+  </style>
+</head>
+<body class="h-full bg-moto-blue-900 text-white overflow-auto scrollbar-thin">
+<div id="app" class="min-h-full w-full">
+  <!-- Navigation -->
+  <nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 bg-moto-blue-800/95 backdrop-blur-md border-b border-moto-blue-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('home')">
+          <div class="w-10 h-10 bg-moto-yellow-400 rounded-lg flex items-center justify-center yellow-glow">
+            <svg class="w-6 h-6 text-moto-blue-900" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          </div>
+          <div>
+            <span class="text-xl font-bold text-gradient">MOTOFIX</span>
+            <span class="hidden sm:block text-xs text-moto-blue-300 -mt-1">Project Blog</span>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-1">
+          <button onclick="navigateTo('home')" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-moto-blue-200 hover:text-white hover:bg-moto-blue-700 transition-all">Home</button>
+          <button onclick="navigateTo('updates')" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-moto-blue-200 hover:text-white hover:bg-moto-blue-700 transition-all">Updates</button>
+          <button onclick="navigateTo('team')" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-moto-blue-200 hover:text-white hover:bg-moto-blue-700 transition-all">Team</button>
+          <button onclick="navigateTo('milestones')" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-moto-blue-200 hover:text-white hover:bg-moto-blue-700 transition-all">Milestones</button>
+        </div>
+        <div class="flex items-center gap-3">
+          <div id="auth-section"></div>
+          <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg text-moto-blue-200 hover:text-white hover:bg-moto-blue-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden bg-moto-blue-800 border-t border-moto-blue-700">
+      <div class="px-4 py-3 space-y-1">
+        <button onclick="navigateTo('home'); toggleMobileMenu()" class="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-moto-blue-200 hover:text-white hover:bg-moto-blue-700">Home</button>
+        <button onclick="navigateTo('updates'); toggleMobileMenu()" class="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-moto-blue-200 hover:text-white hover:bg-moto-blue-700">Updates</button>
+        <button onclick="navigateTo('team'); toggleMobileMenu()" class="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-moto-blue-200 hover:text-white hover:bg-moto-blue-700">Team</button>
+        <button onclick="navigateTo('milestones'); toggleMobileMenu()" class="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-moto-blue-200 hover:text-white hover:bg-moto-blue-700">Milestones</button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main-content" class="pt-16"></main>
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+  <div id="modal-container"></div>
+</div>
+
+<script>
+// ==================== CONFIG & STATE ====================
+const TEAM_PASSWORD = 'MOTOFIX2024';
+
+const defaultConfig = {
+  hero_title: 'MOTOFIX',
+  hero_subtitle: 'Engineering the Future of Automotive Technology',
+  vision_statement: 'We are pioneering next-generation automotive solutions through innovative engineering, cutting-edge research, and relentless pursuit of excellence. Our mission is to transform how vehicles are diagnosed, maintained, and optimized.',
+  primary_color: '#facc15', secondary_color: '#1e3a8a', text_color: '#f8fafc',
+  surface_color: '#1e40af', accent_color: '#fde047', font_family: 'Inter', font_size: 16,
+  patricia_image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+  elvis_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+  daniel_image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+  edgar_image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop'
+};
+
+let config = { ...defaultConfig };
+let currentUser = null;
+let allPosts = [];
+let currentView = 'home';
+let currentFilters = { author: '', mediaType: '', phase: '', search: '' };
+let pendingMediaDataUrl = null;
+
+const teamMembers = [
+  { id: 'tm-001', name: 'Patricia', role: 'Project Lead', avatar: '👩‍💼',
+    bio: 'Leading the MOTOFIX initiative with strategic vision and technical expertise. Coordinating cross-functional teams to deliver innovative automotive solutions.',
+    responsibilities: ['Project Oversight', 'Team Coordination', 'Strategic Planning', 'Stakeholder Management'],
+    email: 'patricia@motofix.dev', joinedDate: '2024-01-15', configImageKey: 'patricia_image' },
+  { id: 'tm-002', name: 'Elvis', role: 'UI Designer', avatar: '🎨',
+    bio: 'Crafting intuitive and visually stunning interfaces that make complex automotive technology accessible to everyone.',
+    responsibilities: ['User Interface Design', 'Design Systems', 'Prototyping', 'User Experience'],
+    email: 'elvis@motofix.dev', joinedDate: '2024-02-01', configImageKey: 'elvis_image' },
+  { id: 'tm-003', name: 'Daniel', role: 'Research Specialist', avatar: '🔬',
+    bio: 'Conducting groundbreaking research in automotive diagnostics and vehicle optimization. Driving innovation through data-driven insights.',
+    responsibilities: ['Research & Development', 'Data Analysis', 'Technical Documentation', 'Innovation'],
+    email: 'daniel@motofix.dev', joinedDate: '2024-02-15', configImageKey: 'daniel_image' },
+  { id: 'tm-004', name: 'Edgar', role: 'Development Engineer', avatar: '⚙️',
+    bio: 'Building robust, efficient, and scalable solutions that power the MOTOFIX platform. Expert in clean code and system architecture.',
+    responsibilities: ['Backend Development', 'System Architecture', 'Code Quality', 'DevOps'],
+    email: 'edgar@motofix.dev', joinedDate: '2024-03-01', configImageKey: 'edgar_image' }
+];
+
+const projectPhases = [
+  { id: 'research', name: 'Research & Discovery', color: '#818cf8' },
+  { id: 'design', name: 'Design & Planning', color: '#f472b6' },
+  { id: 'development', name: 'Development', color: '#34d399' },
+  { id: 'testing', name: 'Testing & QA', color: '#fb923c' },
+  { id: 'deployment', name: 'Deployment', color: '#facc15' }
+];
+
+const mediaTypes = [
+  { id: 'text', name: 'Text Update', icon: '📝' },
+  { id: 'image', name: 'Image', icon: '🖼️' },
+  { id: 'video', name: 'Video', icon: '🎬' },
+  { id: 'document', name: 'Document', icon: '📄' },
+  { id: 'code', name: 'Code Snippet', icon: '💻' }
+];
+
+// ==================== SUPABASE ====================
+const SUPABASE_URL = 'https://tmnxucxwxmoblgcdqnnl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtbnh1Y3h3eG1vYmxnY2Rxbm5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3OTQ4NjUsImV4cCI6MjA4NjM3MDg2NX0.DUz3EpIJtyyB2u9eRSZVpAvywThBPO5uMvbVCODEMBM';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function loadPosts() {
+  try {
+    const { data, error } = await db
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    allPosts = data || [];
+    renderCurrentView();
+  } catch (err) {
+    console.error('loadPosts error:', err);
+    showToast('Failed to load posts: ' + err.message, 'error');
+  }
+}
+
+// ==================== INIT ====================
+async function initSDKs() {
+  applyConfigStyles();
+  renderCurrentView();
+  renderAuthSection();
+  await loadPosts();
+}
+
+function applyConfigStyles() {
+  document.documentElement.style.fontSize = `${config.font_size || 16}px`;
+  document.body.style.fontFamily = `${config.font_family || 'Inter'}, Inter, system-ui, sans-serif`;
+}
+
+// ==================== NAVIGATION ====================
+function navigateTo(view, params = {}) {
+  currentView = view;
+  if (params.memberId) currentFilters.author = params.memberId;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderCurrentView();
+}
+
+function toggleMobileMenu() {
+  document.getElementById('mobile-menu').classList.toggle('hidden');
+}
+
+// ==================== RENDERING ====================
+function renderCurrentView() {
+  const main = document.getElementById('main-content');
+  switch(currentView) {
+    case 'home': main.innerHTML = renderHomePage(); break;
+    case 'updates': main.innerHTML = renderUpdatesPage(); break;
+    case 'team': main.innerHTML = renderTeamPage(); break;
+    case 'milestones': main.innerHTML = renderMilestonesPage(); break;
+    case 'profile': main.innerHTML = renderProfilePage(currentFilters.author); break;
+    default: main.innerHTML = renderHomePage();
+  }
+}
+
+function renderHomePage() {
+  const recentPosts = allPosts.slice(0, 6);
+  const heroTitle = config.hero_title || defaultConfig.hero_title;
+  const heroSubtitle = config.hero_subtitle || defaultConfig.hero_subtitle;
+  const visionStatement = config.vision_statement || defaultConfig.vision_statement;
+  return `
+    <section class="gradient-hero relative overflow-hidden">
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-moto-yellow-400 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-moto-blue-400 rounded-full blur-3xl"></div>
+      </div>
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+        <div class="text-center slide-in">
+          <div class="inline-flex items-center gap-2 px-4 py-2 bg-moto-blue-700/50 rounded-full border border-moto-yellow-400/30 mb-6">
+            <span class="w-2 h-2 bg-moto-yellow-400 rounded-full animate-pulse"></span>
+            <span class="text-sm font-medium text-moto-yellow-400">Active Development</span>
+          </div>
+          <h1 class="text-5xl lg:text-7xl font-black mb-6"><span class="text-gradient">${heroTitle}</span></h1>
+          <p class="text-xl lg:text-2xl text-moto-blue-200 max-w-3xl mx-auto mb-8 leading-relaxed">${heroSubtitle}</p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button onclick="navigateTo('updates')" class="btn-primary px-8 py-4 rounded-xl text-lg font-semibold inline-flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              View Updates
+            </button>
+            <button onclick="navigateTo('team')" class="px-8 py-4 rounded-xl text-lg font-semibold border-2 border-moto-blue-400 text-white hover:bg-moto-blue-700 transition-all inline-flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              Meet the Team
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="relative bg-moto-blue-800/50 border-t border-moto-blue-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="text-center"><div class="text-3xl lg:text-4xl font-bold text-moto-yellow-400">${teamMembers.length}</div><div class="text-sm text-moto-blue-300 mt-1">Team Members</div></div>
+            <div class="text-center"><div class="text-3xl lg:text-4xl font-bold text-moto-yellow-400">${allPosts.length}</div><div class="text-sm text-moto-blue-300 mt-1">Updates Posted</div></div>
+            <div class="text-center"><div class="text-3xl lg:text-4xl font-bold text-moto-yellow-400">${projectPhases.length}</div><div class="text-sm text-moto-blue-300 mt-1">Project Phases</div></div>
+            <div class="text-center"><div class="text-3xl lg:text-4xl font-bold text-moto-yellow-400">24/7</div><div class="text-sm text-moto-blue-300 mt-1">Development</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-moto-blue-800 py-16 lg:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto text-center">
+          <h2 class="text-3xl lg:text-4xl font-bold mb-6"><span class="text-moto-yellow-400">Our Vision</span></h2>
+          <p class="text-lg lg:text-xl text-moto-blue-200 leading-relaxed">${visionStatement}</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            <div class="bg-moto-blue-700/50 rounded-2xl p-6 border border-moto-blue-600">
+              <div class="w-12 h-12 bg-moto-yellow-400/20 rounded-xl flex items-center justify-center mx-auto mb-4"><svg class="w-6 h-6 text-moto-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></div>
+              <h3 class="font-semibold text-lg mb-2">Innovation</h3>
+              <p class="text-sm text-moto-blue-300">Pushing boundaries in automotive technology through creative problem-solving.</p>
+            </div>
+            <div class="bg-moto-blue-700/50 rounded-2xl p-6 border border-moto-blue-600">
+              <div class="w-12 h-12 bg-moto-yellow-400/20 rounded-xl flex items-center justify-center mx-auto mb-4"><svg class="w-6 h-6 text-moto-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+              <h3 class="font-semibold text-lg mb-2">Reliability</h3>
+              <p class="text-sm text-moto-blue-300">Building robust systems that professionals can depend on every day.</p>
+            </div>
+            <div class="bg-moto-blue-700/50 rounded-2xl p-6 border border-moto-blue-600">
+              <div class="w-12 h-12 bg-moto-yellow-400/20 rounded-xl flex items-center justify-center mx-auto mb-4"><svg class="w-6 h-6 text-moto-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+              <h3 class="font-semibold text-lg mb-2">Performance</h3>
+              <p class="text-sm text-moto-blue-300">Optimizing every component for speed, efficiency, and excellence.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-moto-blue-900 py-16 lg:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-12">
+          <div><h2 class="text-3xl lg:text-4xl font-bold text-white">Meet Our Team</h2><p class="text-moto-blue-300 mt-2">The engineers and designers building the future</p></div>
+          <button onclick="navigateTo('team')" class="hidden sm:flex items-center gap-2 text-moto-yellow-400 hover:text-moto-yellow-300 font-medium">View All <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg></button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          ${teamMembers.map((member, i) => `
+            <div class="card-hover bg-moto-blue-800 rounded-2xl overflow-hidden border border-moto-blue-700 cursor-pointer" onclick="viewMemberProfile('${member.id}')">
+              <div class="h-32 overflow-hidden">
+                <img src="${config[member.configImageKey] || defaultConfig[member.configImageKey]}" alt="${member.name}" class="w-full h-full object-cover" onerror="this.parentNode.innerHTML='<div class=\\'h-32 gradient-card flex items-center justify-center text-4xl\\'>${member.avatar}</div>'">
+              </div>
+              <div class="p-4">
+                <h3 class="font-bold text-white">${member.name}</h3>
+                <p class="text-moto-yellow-400 text-sm font-medium">${member.role}</p>
+                <div class="mt-3 pt-3 border-t border-moto-blue-700 flex items-center justify-between">
+                  <span class="text-xs text-moto-blue-400">${getPostCountByAuthor(member.id)} updates</span>
+                  <span class="text-xs text-moto-yellow-400 font-medium">View →</span>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-moto-blue-800 py-16 lg:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-12">
+          <div><h2 class="text-3xl lg:text-4xl font-bold text-white">Recent Updates</h2><p class="text-moto-blue-300 mt-2">Latest progress from our team</p></div>
+          <button onclick="navigateTo('updates')" class="hidden sm:flex items-center gap-2 text-moto-yellow-400 hover:text-moto-yellow-300 font-medium">View All <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg></button>
+        </div>
+        ${recentPosts.length > 0 ? `
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${recentPosts.map((post, i) => renderPostCard(post, i)).join('')}
+          </div>
+        ` : `
+          <div class="text-center py-16 bg-moto-blue-700/30 rounded-2xl border border-moto-blue-600">
+            <div class="text-6xl mb-4">📝</div>
+            <h3 class="text-xl font-semibold text-white mb-2">No Updates Yet</h3>
+            <p class="text-moto-blue-300 mb-6">Be the first to post a project update!</p>
+            ${currentUser ? `<button onclick="openCreatePostModal()" class="btn-primary px-6 py-3 rounded-xl font-semibold">Create First Update</button>` : `<button onclick="openLoginModal()" class="btn-primary px-6 py-3 rounded-xl font-semibold">Sign In to Post</button>`}
+          </div>
+        `}
+      </div>
+    </section>
+    ${renderFooter()}
+  `;
+}
+
+function renderUpdatesPage() {
+  const filteredPosts = filterPosts();
+  return `
+    <section class="bg-moto-blue-900 min-h-screen">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="mb-8"><h1 class="text-4xl font-bold text-white mb-2">Project Updates</h1><p class="text-moto-blue-300">Browse all updates from the MOTOFIX team</p></div>
+        <div class="bg-moto-blue-800 rounded-2xl p-6 mb-8 border border-moto-blue-700">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-moto-blue-300 mb-2">Search</label>
+              <input type="text" placeholder="Search updates..." value="${currentFilters.search}" oninput="updateFilter('search', this.value)" class="w-full input-field rounded-xl px-4 py-3 text-white placeholder-moto-blue-400">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-moto-blue-300 mb-2">Team Member</label>
+              <select onchange="updateFilter('author', this.value)" class="w-full input-field rounded-xl px-4 py-3 text-white">
+                <option value="">All Members</option>
+                ${teamMembers.map(m => `<option value="${m.id}" ${currentFilters.author === m.id ? 'selected' : ''}>${m.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-moto-blue-300 mb-2">Media Type</label>
+              <select onchange="updateFilter('mediaType', this.value)" class="w-full input-field rounded-xl px-4 py-3 text-white">
+                <option value="">All Types</option>
+                ${mediaTypes.map(t => `<option value="${t.id}" ${currentFilters.mediaType === t.id ? 'selected' : ''}>${t.icon} ${t.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-moto-blue-300 mb-2">Project Phase</label>
+              <select onchange="updateFilter('phase', this.value)" class="w-full input-field rounded-xl px-4 py-3 text-white">
+                <option value="">All Phases</option>
+                ${projectPhases.map(p => `<option value="${p.id}" ${currentFilters.phase === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          ${hasActiveFilters() ? `
+            <div class="mt-4 pt-4 border-t border-moto-blue-700 flex items-center gap-2 flex-wrap">
+              <span class="text-sm text-moto-blue-300">Active filters:</span>
+              ${currentFilters.search ? `<span class="inline-flex items-center gap-1 px-3 py-1 bg-moto-yellow-400/20 text-moto-yellow-400 rounded-full text-sm">"${currentFilters.search}" <button onclick="updateFilter('search', '')" class="hover:text-white ml-1">&times;</button></span>` : ''}
+              ${currentFilters.author ? `<span class="inline-flex items-center gap-1 px-3 py-1 bg-moto-yellow-400/20 text-moto-yellow-400 rounded-full text-sm">${teamMembers.find(m => m.id === currentFilters.author)?.name} <button onclick="updateFilter('author', '')" class="hover:text-white ml-1">&times;</button></span>` : ''}
+              ${currentFilters.mediaType ? `<span class="inline-flex items-center gap-1 px-3 py-1 bg-moto-yellow-400/20 text-moto-yellow-400 rounded-full text-sm">${mediaTypes.find(t => t.id === currentFilters.mediaType)?.name} <button onclick="updateFilter('mediaType', '')" class="hover:text-white ml-1">&times;</button></span>` : ''}
+              ${currentFilters.phase ? `<span class="inline-flex items-center gap-1 px-3 py-1 bg-moto-yellow-400/20 text-moto-yellow-400 rounded-full text-sm">${projectPhases.find(p => p.id === currentFilters.phase)?.name} <button onclick="updateFilter('phase', '')" class="hover:text-white ml-1">&times;</button></span>` : ''}
+              <button onclick="clearAllFilters()" class="text-sm text-moto-blue-400 hover:text-white ml-2">Clear all</button>
+            </div>
+          ` : ''}
+        </div>
+        ${currentUser ? `
+          <div class="mb-8">
+            <button onclick="openCreatePostModal()" class="btn-primary px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Create Update
+            </button>
+          </div>
+        ` : ''}
+        <div class="mb-6 text-moto-blue-300">Showing ${filteredPosts.length} update${filteredPosts.length !== 1 ? 's' : ''}</div>
+        ${filteredPosts.length > 0 ? `
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${filteredPosts.map((post, i) => renderPostCard(post, i)).join('')}
+          </div>
+        ` : `
+          <div class="text-center py-16 bg-moto-blue-800/50 rounded-2xl border border-moto-blue-700">
+            <div class="text-6xl mb-4">🔍</div>
+            <h3 class="text-xl font-semibold text-white mb-2">No Updates Found</h3>
+            <p class="text-moto-blue-300">Try adjusting your filters or search terms</p>
+          </div>
+        `}
+      </div>
+      ${renderFooter()}
+    </section>
+  `;
+}
+
+function renderTeamPage() {
+  return `
+    <section class="bg-moto-blue-900 min-h-screen">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-12">
+          <h1 class="text-4xl lg:text-5xl font-bold text-white mb-4">Our Team</h1>
+          <p class="text-xl text-moto-blue-300 max-w-2xl mx-auto">Meet the talented engineers, designers, and innovators driving the MOTOFIX project forward.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          ${teamMembers.map((member, i) => `
+            <div class="card-hover bg-moto-blue-800 rounded-2xl overflow-hidden border border-moto-blue-700">
+              <div class="h-48 bg-moto-blue-700 overflow-hidden">
+                <img src="${config[member.configImageKey] || defaultConfig[member.configImageKey]}" alt="${member.name}" class="w-full h-full object-cover" onerror="this.parentNode.innerHTML='<div class=\\'h-48 gradient-card flex items-center justify-center text-6xl\\'>${member.avatar}</div>'">
+              </div>
+              <div class="p-6">
+                <h3 class="font-bold text-xl text-white">${member.name}</h3>
+                <p class="text-moto-yellow-400 font-medium mb-3">${member.role}</p>
+                <p class="text-moto-blue-300 text-sm mb-4">${member.bio}</p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                  ${member.responsibilities.slice(0, 3).map(r => `<span class="px-2 py-1 bg-moto-blue-700/50 text-moto-blue-200 rounded-lg text-xs">${r}</span>`).join('')}
+                </div>
+                <div class="flex items-center justify-between pt-4 border-t border-moto-blue-700">
+                  <div class="text-center"><div class="text-lg font-bold text-moto-yellow-400">${getPostCountByAuthor(member.id)}</div><div class="text-xs text-moto-blue-400">Updates</div></div>
+                  <div class="text-center"><div class="text-sm font-bold text-white">${formatDate(member.joinedDate)}</div><div class="text-xs text-moto-blue-400">Joined</div></div>
+                  <button onclick="viewMemberProfile('${member.id}')" class="px-4 py-2 bg-moto-yellow-400/20 text-moto-yellow-400 rounded-xl text-sm font-medium hover:bg-moto-yellow-400/30 transition-all">Profile</button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ${renderFooter()}
+    </section>
+  `;
+}
+
+function renderProfilePage(memberId) {
+  const member = teamMembers.find(m => m.id === memberId);
+  if (!member) return `<div class="min-h-screen bg-moto-blue-900 flex items-center justify-center"><div class="text-center"><div class="text-6xl mb-4">😕</div><h2 class="text-2xl font-bold text-white mb-2">Team Member Not Found</h2><button onclick="navigateTo('team')" class="btn-primary px-6 py-3 rounded-xl mt-4">Back to Team</button></div></div>`;
+  const memberPosts = allPosts.filter(p => p.author_id === memberId);
+  return `
+    <section class="bg-moto-blue-900 min-h-screen">
+      <div class="gradient-hero">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <button onclick="navigateTo('team')" class="inline-flex items-center gap-2 text-moto-blue-300 hover:text-white mb-8 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Back to Team
+          </button>
+          <div class="flex flex-col lg:flex-row gap-8 items-start">
+            <div class="flex-shrink-0">
+              <img src="${config[member.configImageKey] || defaultConfig[member.configImageKey]}" alt="${member.name}" class="w-32 h-32 rounded-3xl object-cover yellow-glow" onerror="this.outerHTML='<div class=\\'w-32 h-32 bg-gradient-to-br from-moto-yellow-400 to-moto-yellow-500 rounded-3xl flex items-center justify-center text-6xl yellow-glow\\'>${member.avatar}</div>'">
+            </div>
+            <div class="flex-1">
+              <h1 class="text-4xl lg:text-5xl font-bold text-white mb-2">${member.name}</h1>
+              <p class="text-xl text-moto-yellow-400 font-medium mb-4">${member.role}</p>
+              <p class="text-moto-blue-200 text-lg max-w-2xl mb-6">${member.bio}</p>
+              <div class="flex flex-wrap gap-2 mb-6">${member.responsibilities.map(r => `<span class="px-4 py-2 bg-moto-blue-700/50 text-white rounded-xl text-sm font-medium border border-moto-blue-600">${r}</span>`).join('')}</div>
+              <div class="flex flex-wrap gap-6 items-center">
+                <div class="flex items-center gap-2 text-moto-blue-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>${member.email}</div>
+                <div class="flex items-center gap-2 text-moto-blue-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Joined ${formatDate(member.joinedDate)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-2xl font-bold text-white">Activity Feed</h2>
+          <span class="text-moto-blue-300">${memberPosts.length} update${memberPosts.length !== 1 ? 's' : ''}</span>
+        </div>
+        ${memberPosts.length > 0 ? `
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${memberPosts.map((post, i) => renderPostCard(post, i)).join('')}</div>
+        ` : `
+          <div class="text-center py-16 bg-moto-blue-800/50 rounded-2xl border border-moto-blue-700">
+            <div class="text-6xl mb-4">📭</div>
+            <h3 class="text-xl font-semibold text-white mb-2">No Updates Yet</h3>
+            <p class="text-moto-blue-300">${member.name} hasn't posted any updates yet.</p>
+          </div>
+        `}
+      </div>
+      ${renderFooter()}
+    </section>
+  `;
+}
+
+function renderMilestonesPage() {
+  const phaseStats = projectPhases.map(phase => ({
+    ...phase,
+    postCount: allPosts.filter(p => p.phase === phase.id).length,
+    posts: allPosts.filter(p => p.phase === phase.id)
+  }));
+  return `
+    <section class="bg-moto-blue-900 min-h-screen">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-12">
+          <h1 class="text-4xl lg:text-5xl font-bold text-white mb-4">Project Milestones</h1>
+          <p class="text-xl text-moto-blue-300 max-w-2xl mx-auto">Track our progress through each phase of the MOTOFIX development journey.</p>
+        </div>
+        <div class="space-y-16">
+          ${phaseStats.map((phase, i) => `
+            <div>
+              <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style="background: ${phase.color}20">
+                  <div class="w-6 h-6 rounded-full" style="background: ${phase.color}"></div>
+                </div>
+                <div>
+                  <h2 class="text-2xl font-bold text-white">${phase.name}</h2>
+                  <p class="text-moto-blue-300 text-sm">Phase ${i + 1} · ${phase.postCount} update${phase.postCount !== 1 ? 's' : ''}</p>
+                </div>
+              </div>
+              ${phase.posts.length > 0 ? `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  ${phase.posts.map((post, idx) => renderSocialCard(post, idx)).join('')}
+                </div>
+              ` : `
+                <div class="text-center py-12 bg-moto-blue-800/30 rounded-2xl border border-moto-blue-700">
+                  <p class="text-moto-blue-400">No updates posted for this phase yet</p>
+                </div>
+              `}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ${renderFooter()}
+    </section>
+  `;
+}
+
+function renderSocialCard(post, index) {
+  const author = teamMembers.find(m => m.id === post.author_id) || { name: post.author_name, avatar: '👤', configImageKey: null };
+  const authorImage = author.configImageKey ? (config[author.configImageKey] || defaultConfig[author.configImageKey]) : null;
+  return `
+    <article class="card-hover bg-moto-blue-800 rounded-2xl overflow-hidden border border-moto-blue-700 flex flex-col">
+      ${post.media_url && post.media_type === 'image' ? `
+        <div class="h-56 bg-moto-blue-700 overflow-hidden">
+          <img src="${post.media_url}" alt="${post.title}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\'h-56 flex items-center justify-center text-4xl\\'>🖼️</div>'">
+        </div>
+      ` : post.media_url && post.media_type === 'video' ? `
+        <div class="h-56 bg-moto-blue-700 overflow-hidden">
+          <video src="${post.media_url}" class="w-full h-full object-cover" controls></video>
+        </div>
+      ` : post.media_type && post.media_type !== 'text' ? `
+        <div class="h-56 bg-gradient-to-br from-moto-blue-700 to-moto-blue-600 flex items-center justify-center text-5xl">
+          ${post.media_type === 'video' ? '🎬' : post.media_type === 'document' ? '📄' : post.media_type === 'code' ? '💻' : '📎'}
+        </div>
+      ` : `
+        <div class="h-56 bg-gradient-to-br from-moto-yellow-400/10 to-moto-blue-700 flex items-center justify-center"><span class="text-4xl">✍️</span></div>
+      `}
+      <div class="p-6 flex flex-col flex-1">
+        <h3 class="text-lg font-bold text-white mb-2 line-clamp-2">${post.title}</h3>
+        <p class="text-moto-blue-300 text-sm mb-4 line-clamp-3 flex-1">${stripHtml(post.content)}</p>
+        <div class="pt-4 border-t border-moto-blue-700">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer flex-1 min-w-0" onclick="viewMemberProfile('${post.author_id}')">
+              ${authorImage ? `<img src="${authorImage}" alt="${author.name}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0">` : `<div class="w-10 h-10 bg-moto-yellow-400 rounded-lg flex items-center justify-center text-sm flex-shrink-0">${author.avatar}</div>`}
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-white truncate">${author.name}</p>
+                <p class="text-xs text-moto-blue-400">${formatRelativeDate(post.created_at)}</p>
+              </div>
+            </div>
+            ${currentUser && (currentUser.id === post.author_id || currentUser.role === 'admin') ? `
+              <div class="flex items-center gap-1">
+                <button type="button" class="p-2 text-moto-blue-400 hover:text-moto-yellow-400 transition-all" title="Edit" onclick="editPost('${post.id}')">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </button>
+                <button type="button" class="p-2 text-moto-blue-400 hover:text-red-400 transition-all" title="Delete" onclick="confirmDeletePost('${post.id}')">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderPostCard(post, index) {
+  const author = teamMembers.find(m => m.id === post.author_id) || { name: post.author_name, avatar: '👤' };
+  const phase = projectPhases.find(p => p.id === post.phase);
+  const mediaType = mediaTypes.find(t => t.id === post.media_type);
+  return `
+    <article class="card-hover bg-moto-blue-800 rounded-2xl overflow-hidden border border-moto-blue-700">
+      ${post.media_url && post.media_type === 'image' ? `
+        <div class="h-48 bg-moto-blue-700 overflow-hidden">
+          <img src="${post.media_url}" alt="${post.title}" class="w-full h-full object-cover" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\'h-48 flex items-center justify-center text-4xl\\'>🖼️</div>'">
+        </div>
+      ` : post.media_url && post.media_type === 'video' ? `
+        <div class="h-48 bg-moto-blue-700 overflow-hidden">
+          <video src="${post.media_url}" class="w-full h-full object-cover" controls></video>
+        </div>
+      ` : post.media_type && post.media_type !== 'text' ? `
+        <div class="h-48 bg-gradient-to-br from-moto-blue-700 to-moto-blue-600 flex items-center justify-center">
+          <span class="text-6xl">${mediaType?.icon || '📄'}</span>
+        </div>
+      ` : ''}
+      <div class="p-6">
+        ${phase ? `<div class="mb-3"><span class="phase-badge px-2 py-1 rounded-full font-semibold uppercase" style="background: ${phase.color}20; color: ${phase.color}">${phase.name}</span></div>` : ''}
+        <h3 class="text-lg font-bold text-white mb-2 line-clamp-2">${post.title}</h3>
+        <p class="text-moto-blue-300 text-sm mb-4 line-clamp-3">${stripHtml(post.content)}</p>
+        <div class="flex items-center justify-between pt-4 border-t border-moto-blue-700">
+          <div class="flex items-center gap-3 cursor-pointer" onclick="viewMemberProfile('${post.author_id}')">
+            <div class="w-8 h-8 bg-moto-yellow-400 rounded-lg flex items-center justify-center text-sm">${author.avatar}</div>
+            <div>
+              <p class="text-sm font-medium text-white">${author.name}</p>
+              <p class="text-xs text-moto-blue-400">${formatRelativeDate(post.created_at)}</p>
+            </div>
+          </div>
+          ${currentUser && (currentUser.id === post.author_id || currentUser.role === 'admin') ? `
+            <div class="flex items-center gap-2">
+              <button type="button" class="p-2 text-moto-blue-400 hover:text-moto-yellow-400 transition-all" title="Edit" onclick="editPost('${post.id}')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </button>
+              <button type="button" class="p-2 text-moto-blue-400 hover:text-red-400 transition-all" title="Delete" onclick="confirmDeletePost('${post.id}')">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderFooter() {
+  return `
+    <footer class="bg-moto-blue-800 border-t border-moto-blue-700">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div class="col-span-1 md:col-span-2">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-moto-yellow-400 rounded-lg flex items-center justify-center"><svg class="w-6 h-6 text-moto-blue-900" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+              <span class="text-xl font-bold text-gradient">MOTOFIX</span>
+            </div>
+            <p class="text-moto-blue-300 text-sm max-w-md">Engineering the future of automotive technology. Follow our journey as we build innovative solutions for vehicle diagnostics and maintenance.</p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-white mb-4">Quick Links</h4>
+            <ul class="space-y-2">
+              <li><button onclick="navigateTo('home')" class="text-moto-blue-300 hover:text-moto-yellow-400 transition-all text-sm">Home</button></li>
+              <li><button onclick="navigateTo('updates')" class="text-moto-blue-300 hover:text-moto-yellow-400 transition-all text-sm">Updates</button></li>
+              <li><button onclick="navigateTo('team')" class="text-moto-blue-300 hover:text-moto-yellow-400 transition-all text-sm">Team</button></li>
+              <li><button onclick="navigateTo('milestones')" class="text-moto-blue-300 hover:text-moto-yellow-400 transition-all text-sm">Milestones</button></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold text-white mb-4">Contact</h4>
+            <ul class="space-y-2 text-sm text-moto-blue-300"><li>info@motofix.dev</li><li>@motofix_project</li></ul>
+          </div>
+        </div>
+        <div class="mt-8 pt-8 border-t border-moto-blue-700 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p class="text-sm text-moto-blue-400">© 2024 MOTOFIX Project. All rights reserved.</p>
+          <p class="text-sm text-moto-blue-400">Built with 💛 by the MOTOFIX Team</p>
+        </div>
+      </div>
+    </footer>
+  `;
+}
+
+// ==================== AUTH ====================
+function renderAuthSection() {
+  const authSection = document.getElementById('auth-section');
+  if (currentUser) {
+    authSection.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-2 px-3 py-2 bg-moto-blue-700/50 rounded-xl">
+          <div class="w-8 h-8 bg-moto-yellow-400 rounded-lg flex items-center justify-center text-sm">${currentUser.avatar}</div>
+          <span class="text-sm font-medium text-white">${currentUser.name}</span>
+          ${currentUser.role === 'admin' ? '<span class="px-2 py-0.5 bg-moto-yellow-400/20 text-moto-yellow-400 text-xs rounded-full">Admin</span>' : ''}
+        </div>
+        <button onclick="logout()" class="px-4 py-2 text-sm font-medium text-moto-blue-300 hover:text-white transition-all">Sign Out</button>
+      </div>
+    `;
+  } else {
+    authSection.innerHTML = `<button onclick="openLoginModal()" class="btn-primary px-4 py-2 rounded-xl text-sm font-semibold">Sign In</button>`;
+  }
+}
+
+function openLoginModal() {
+  const modal = document.getElementById('modal-container');
+  modal.innerHTML = `
+    <div class="fixed inset-0 modal-overlay flex items-center justify-center p-4 z-50">
+      <div class="bg-moto-blue-800 rounded-2xl p-8 max-w-md w-full border border-moto-blue-600 shadow-2xl slide-in">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-white">Team Sign In</h2>
+          <button type="button" id="login-close-btn" class="p-2 text-moto-blue-400 hover:text-white transition-all">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <p class="text-moto-blue-300 mb-2">Select your profile and enter the team password:</p>
+        <div id="login-step-1">
+          <div class="space-y-3 max-h-64 overflow-y-auto scrollbar-thin pr-2 mb-4">
+            ${teamMembers.map(member => `
+              <button type="button" id="member-btn-${member.id}" class="member-select-btn w-full flex items-center gap-4 p-4 bg-moto-blue-700/50 rounded-xl border border-moto-blue-600 hover:border-moto-yellow-400 hover:bg-moto-blue-700 transition-all text-left">
+                <div class="w-12 h-12 bg-moto-yellow-400 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">${member.avatar}</div>
+                <div><p class="font-semibold text-white">${member.name}</p><p class="text-sm text-moto-blue-300">${member.role}</p></div>
+              </button>
+            `).join('')}
+          </div>
+          <div class="mt-4 pt-4 border-t border-moto-blue-700">
+            <button type="button" id="admin-select-btn" class="w-full p-4 bg-moto-yellow-400/10 rounded-xl border border-moto-yellow-400/30 hover:bg-moto-yellow-400/20 transition-all text-left flex items-center gap-4">
+              <div class="w-12 h-12 bg-moto-yellow-400 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">🛡️</div>
+              <div><p class="font-semibold text-moto-yellow-400">Admin Access</p><p class="text-sm text-moto-blue-300">Full moderation capabilities</p></div>
+            </button>
+          </div>
+        </div>
+        <div id="login-step-2" class="hidden">
+          <div id="selected-member-display" class="flex items-center gap-3 p-3 bg-moto-blue-700/50 rounded-xl mb-4"></div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-moto-blue-300 mb-2">Team Password</label>
+            <input type="password" id="login-password" placeholder="Enter team password..." class="w-full input-field rounded-xl px-4 py-3 text-white placeholder-moto-blue-400">
+            <p id="login-error" class="text-red-400 text-sm mt-2 hidden">Incorrect password. Try again.</p>
+          </div>
+          <div class="flex gap-3">
+            <button type="button" id="login-back-btn" class="flex-1 px-4 py-3 rounded-xl border border-moto-blue-600 text-moto-blue-300 hover:text-white transition-all">Back</button>
+            <button type="button" id="login-confirm-btn" class="flex-1 btn-primary px-4 py-3 rounded-xl font-semibold">Sign In</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  let selectedMemberId = null;
+  let isAdmin = false;
+
+  document.getElementById('login-close-btn').addEventListener('click', closeModal);
+
+  teamMembers.forEach(member => {
+    document.getElementById('member-btn-' + member.id).addEventListener('click', () => {
+      selectedMemberId = member.id;
+      isAdmin = false;
+      document.getElementById('selected-member-display').innerHTML = `
+        <div class="w-10 h-10 bg-moto-yellow-400 rounded-lg flex items-center justify-center text-xl flex-shrink-0">${member.avatar}</div>
+        <div><p class="font-medium text-white">${member.name}</p><p class="text-xs text-moto-blue-300">${member.role}</p></div>
+      `;
+      document.getElementById('login-step-1').classList.add('hidden');
+      document.getElementById('login-step-2').classList.remove('hidden');
+      document.getElementById('login-password').focus();
+    });
+  });
+
+  document.getElementById('admin-select-btn').addEventListener('click', () => {
+    selectedMemberId = 'admin';
+    isAdmin = true;
+    document.getElementById('selected-member-display').innerHTML = `
+      <div class="w-10 h-10 bg-moto-yellow-400 rounded-lg flex items-center justify-center text-xl flex-shrink-0">🛡️</div>
+      <div><p class="font-medium text-white">Admin</p><p class="text-xs text-moto-blue-300">Full access</p></div>
+    `;
+    document.getElementById('login-step-1').classList.add('hidden');
+    document.getElementById('login-step-2').classList.remove('hidden');
+    document.getElementById('login-password').focus();
+  });
+
+  document.getElementById('login-back-btn').addEventListener('click', () => {
+    document.getElementById('login-step-2').classList.add('hidden');
+    document.getElementById('login-step-1').classList.remove('hidden');
+    document.getElementById('login-error').classList.add('hidden');
+    document.getElementById('login-password').value = '';
+  });
+
+  document.getElementById('login-confirm-btn').addEventListener('click', () => {
+    const pwd = document.getElementById('login-password').value;
+    if (pwd !== TEAM_PASSWORD) {
+      document.getElementById('login-error').classList.remove('hidden');
+      return;
+    }
+    if (isAdmin) {
+      currentUser = { id: 'admin-001', name: 'Admin', role: 'admin', avatar: '🛡️' };
+    } else {
+      const member = teamMembers.find(m => m.id === selectedMemberId);
+      currentUser = { ...member, role: 'member' };
+    }
+    closeModal();
+    renderAuthSection();
+    renderCurrentView();
+    showToast(`Welcome, ${currentUser.name}!`, 'success');
+  });
+
+  document.getElementById('login-password').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('login-confirm-btn').click();
+  });
+}
+
+function logout() {
+  currentUser = null;
+  renderAuthSection();
+  renderCurrentView();
+  showToast('Signed out successfully', 'info');
+}
+
+// ==================== FILE UPLOAD ====================
+function handleFileSelect(inputId, previewId, mediaTypeSelectId) {
+  const input = document.getElementById(inputId);
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('File is too large. Maximum size is 10MB.', 'error');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    pendingMediaDataUrl = e.target.result;
+    const preview = document.getElementById(previewId);
+    if (file.type.startsWith('image/')) {
+      preview.innerHTML = `<img src="${pendingMediaDataUrl}" class="w-full h-40 object-cover rounded-xl">`;
+      if (mediaTypeSelectId) document.getElementById(mediaTypeSelectId).value = 'image';
+    } else if (file.type.startsWith('video/')) {
+      preview.innerHTML = `<video src="${pendingMediaDataUrl}" class="w-full h-40 object-cover rounded-xl" controls></video>`;
+      if (mediaTypeSelectId) document.getElementById(mediaTypeSelectId).value = 'video';
+    } else {
+      preview.innerHTML = `<div class="flex items-center gap-3 p-3 bg-moto-blue-700/50 rounded-xl"><span class="text-2xl">📄</span><span class="text-white text-sm">${file.name}</span></div>`;
+      if (mediaTypeSelectId) document.getElementById(mediaTypeSelectId).value = 'document';
+    }
+    preview.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ==================== POST MANAGEMENT ====================
+function openCreatePostModal() {
+  if (!currentUser) { openLoginModal(); return; }
+  pendingMediaDataUrl = null;
+  const modal = document.getElementById('modal-container');
+  modal.innerHTML = `
+    <div class="fixed inset-0 modal-overlay flex items-center justify-center p-4 z-50">
+      <div class="bg-moto-blue-800 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto scrollbar-thin border border-moto-blue-600 shadow-2xl slide-in">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-white">Create Update</h2>
+          <button type="button" id="create-close-btn" class="p-2 text-moto-blue-400 hover:text-white transition-all">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <form id="post-form">
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-moto-blue-300 mb-2">Title *</label>
+            <input type="text" id="post-title" required class="w-full input-field rounded-xl px-4 py-3 text-white placeholder-moto-blue-400" placeholder="Enter a descriptive title...">
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-moto-blue-300 mb-2">Content *</label>
+            <textarea id="post-content" required rows="6" class="w-full input-field rounded-xl px-4 py-3 text-white placeholder-moto-blue-400 resize-none" placeholder="Write your update..."></textarea>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label class="block text-sm font-medium text-moto-blue-300 mb-2">Media Type</label>
+              <select id="post-media-type" class="w-full input-field rounded-xl px-4 py-3 text-white">
+                ${mediaTypes.map(t => `<option value="${t.id}">${t.icon} ${t.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-moto-blue-300 mb-2">Project Phase</label>
+              <select id="post-phase" class="w-full input-field rounded-xl px-4 py-3 text-white">
+                ${projectPhases.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-moto-blue-300 mb-2">Media File (optional)</label>
+            <label class="upload-zone block rounded-xl p-6 text-center bg-moto-blue-700/30">
+              <input type="file" id="post-file-input" accept="image/*,video/*,.pdf,.doc,.docx" class="hidden" onchange="handleFileSelect('post-file-input','post-file-preview','post-media-type')">
+              <div class="text-4xl mb-2">📁</div>
+              <p class="text-moto-blue-300 text-sm">Click to upload image, video, or document</p>
+              <p class="text-moto-blue-400 text-xs mt-1">Max 10MB</p>
+            </label>
+            <div id="post-file-preview" class="mt-3 hidden"></div>
+          </div>
+          <div class="flex justify-end gap-4">
+            <button type="button" id="create-cancel-btn" class="px-6 py-3 rounded-xl font-medium text-moto-blue-300 hover:text-white transition-all">Cancel</button>
+            <button type="button" id="create-submit-btn" class="btn-primary px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2">
+              <span id="create-submit-text">Publish Update</span>
+              <svg id="create-spinner" class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('create-close-btn').addEventListener('click', closeModal);
+  document.getElementById('create-cancel-btn').addEventListener('click', closeModal);
+  document.getElementById('create-submit-btn').addEventListener('click', submitPost);
+}
+
+async function submitPost() {
+  if (!currentUser) return;
+  const titleEl = document.getElementById('post-title');
+  const contentEl = document.getElementById('post-content');
+  if (!titleEl || !contentEl) return;
+
+  const title = titleEl.value.trim();
+  const content = contentEl.value.trim();
+  if (!title || !content) { showToast('Please fill in title and content', 'error'); return; }
+  if (allPosts.length >= 999) { showToast('Maximum post limit reached', 'error'); return; }
+
+  const btn = document.getElementById('create-submit-btn');
+  const submitText = document.getElementById('create-submit-text');
+  const spinner = document.getElementById('create-spinner');
+  if (!btn || !submitText || !spinner) return;
+
+  submitText.textContent = 'Publishing...';
+  spinner.classList.remove('hidden');
+  btn.disabled = true;
+
+  const author = teamMembers.find(m => m.id === currentUser.id) || currentUser;
+  const postData = {
+    title,
+    content,
+    author_id: currentUser.id,
+    author_name: author.name,
+    author_role: author.role || '',
+    media_type: document.getElementById('post-media-type')?.value || 'text',
+    media_url: pendingMediaDataUrl || '',
+    phase: document.getElementById('post-phase')?.value || 'research',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_pinned: false
+  };
+
+  try {
+    const { error } = await db.from('posts').insert([postData]);
+    if (error) throw error;
+    await loadPosts();
+    closeModal();
+    showToast('Update published!', 'success');
+  } catch (err) {
+    console.error('submitPost error:', err);
+    showToast('Failed to publish: ' + (err.message || 'Unknown error'), 'error');
+    btn.disabled = false;
+    submitText.textContent = 'Publish Update';
+    spinner.classList.add('hidden');
+  }
+}
+
+function editPost(postId) {
+  const post = allPosts.find(p => p.id === postId);
+  if (!post) return;
+  pendingMediaDataUrl = post.media_url || null;
+  const modal = document.getElementById('modal-container');
+  modal.innerHTML = `
+    <div class="fixed inset-0 modal-overlay flex items-center justify-center p-4 z-50">
+      <div class="bg-moto-blue-800 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto scrollbar-thin border border-moto-blue-600 shadow-2xl slide-in">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-white">Edit Update</h2>
+          <button type="button" id="edit-close-btn" class="p-2 text-moto-blue-400 hover:text-white transition-all">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-moto-blue-300 mb-2">Title *</label>
+          <input type="text" id="edit-title" required value="${escapeHtml(post.title)}" class="w-full input-field rounded-xl px-4 py-3 text-white">
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-moto-blue-300 mb-2">Content *</label>
+          <textarea id="edit-content" required rows="6" class="w-full input-field rounded-xl px-4 py-3 text-white resize-none">${escapeHtml(post.content)}</textarea>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label class="block text-sm font-medium text-moto-blue-300 mb-2">Media Type</label>
+            <select id="edit-media-type" class="w-full input-field rounded-xl px-4 py-3 text-white">
+              ${mediaTypes.map(t => `<option value="${t.id}" ${post.media_type === t.id ? 'selected' : ''}>${t.icon} ${t.name}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-moto-blue-300 mb-2">Project Phase</label>
+            <select id="edit-phase" class="w-full input-field rounded-xl px-4 py-3 text-white">
+              ${projectPhases.map(p => `<option value="${p.id}" ${post.phase === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-moto-blue-300 mb-2">Replace Media File (optional)</label>
+          <label class="upload-zone block rounded-xl p-6 text-center bg-moto-blue-700/30">
+            <input type="file" id="edit-file-input" accept="image/*,video/*,.pdf,.doc,.docx" class="hidden" onchange="handleFileSelect('edit-file-input','edit-file-preview','edit-media-type')">
+            <div class="text-4xl mb-2">📁</div>
+            <p class="text-moto-blue-300 text-sm">Click to replace media file</p>
+          </label>
+          <div id="edit-file-preview" class="mt-3">
+            ${post.media_url && post.media_type === 'image' ? `<img src="${post.media_url}" class="w-full h-40 object-cover rounded-xl">` : post.media_url && post.media_type === 'video' ? `<video src="${post.media_url}" class="w-full h-40 rounded-xl" controls></video>` : post.media_url ? `<div class="flex items-center gap-3 p-3 bg-moto-blue-700/50 rounded-xl"><span class="text-2xl">📄</span><span class="text-moto-blue-300 text-sm">Current file attached</span></div>` : ''}
+          </div>
+        </div>
+        <div class="flex justify-end gap-4">
+          <button type="button" id="edit-cancel-btn" class="px-6 py-3 rounded-xl font-medium text-moto-blue-300 hover:text-white transition-all">Cancel</button>
+          <button type="button" id="edit-save-btn" class="btn-primary px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2">
+            <span id="edit-save-text">Save Changes</span>
+            <svg id="edit-spinner" class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('edit-close-btn').addEventListener('click', closeModal);
+  document.getElementById('edit-cancel-btn').addEventListener('click', closeModal);
+  document.getElementById('edit-save-btn').addEventListener('click', async () => {
+    const title = document.getElementById('edit-title').value.trim();
+    const content = document.getElementById('edit-content').value.trim();
+    if (!title || !content) { showToast('Please fill in title and content', 'error'); return; }
+
+    const btn = document.getElementById('edit-save-btn');
+    document.getElementById('edit-save-text').textContent = 'Saving...';
+    document.getElementById('edit-spinner').classList.remove('hidden');
+    btn.disabled = true;
+
+    const updatedPost = {
+      id: post.id,
+      title,
+      content,
+      media_type: document.getElementById('edit-media-type').value,
+      media_url: pendingMediaDataUrl !== null ? pendingMediaDataUrl : (post.media_url || ''),
+      phase: document.getElementById('edit-phase').value,
+      updated_at: new Date().toISOString()
+    };
+
+    try {
+      const { error } = await db
+        .from('posts')
+        .update({
+          title: updatedPost.title,
+          content: updatedPost.content,
+          media_type: updatedPost.media_type,
+          media_url: updatedPost.media_url,
+          phase: updatedPost.phase,
+          updated_at: updatedPost.updated_at
+        })
+        .eq('id', updatedPost.id);
+      if (error) throw error;
+      await loadPosts();
+      closeModal();
+      showToast('Update saved!', 'success');
+    } catch (err) {
+      console.error('editPost error:', err);
+      showToast('Failed to save: ' + (err.message || 'Unknown error'), 'error');
+      btn.disabled = false;
+      document.getElementById('edit-save-text').textContent = 'Save Changes';
+      document.getElementById('edit-spinner').classList.add('hidden');
+    }
+  });
+}
+
+function confirmDeletePost(postId) {
+  const post = allPosts.find(p => p.id === postId);
+  if (!post) return;
+  const modal = document.getElementById('modal-container');
+  modal.innerHTML = `
+    <div class="fixed inset-0 modal-overlay flex items-center justify-center p-4 z-50">
+      <div class="bg-moto-blue-800 rounded-2xl p-8 max-w-md w-full border border-moto-blue-600 shadow-2xl slide-in">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Delete Update?</h3>
+          <p class="text-moto-blue-300 mb-6">Are you sure you want to delete <strong class="text-white">"${escapeHtml(post.title)}"</strong>? This cannot be undone.</p>
+          <div class="flex gap-4">
+            <button type="button" id="delete-cancel-btn" class="flex-1 px-6 py-3 rounded-xl font-medium border border-moto-blue-600 text-moto-blue-300 hover:text-white hover:border-moto-blue-500 transition-all">Cancel</button>
+            <button type="button" id="delete-confirm-btn" class="flex-1 px-6 py-3 rounded-xl font-semibold bg-red-500 hover:bg-red-600 text-white transition-all inline-flex items-center justify-center gap-2">
+              <span id="delete-btn-text">Delete</span>
+              <svg id="delete-spinner" class="w-5 h-5 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Use addEventListener — the KEY fix for unresponsive buttons
+  document.getElementById('delete-cancel-btn').addEventListener('click', closeModal);
+  document.getElementById('delete-confirm-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('delete-confirm-btn');
+    document.getElementById('delete-btn-text').textContent = 'Deleting...';
+    document.getElementById('delete-spinner').classList.remove('hidden');
+    btn.disabled = true;
+
+    try {
+      const { error } = await db.from('posts').delete().eq('id', post.id);
+      if (error) throw error;
+      await loadPosts();
+      closeModal();
+      showToast('Update deleted', 'success');
+    } catch (err) {
+      console.error('deletePost error:', err);
+      showToast('Failed to delete: ' + (err.message || 'Unknown error'), 'error');
+      btn.disabled = false;
+      document.getElementById('delete-btn-text').textContent = 'Delete';
+      document.getElementById('delete-spinner').classList.add('hidden');
+    }
+  });
+}
+
+// ==================== UTILITIES ====================
+function closeModal() { document.getElementById('modal-container').innerHTML = ''; pendingMediaDataUrl = null; }
+
+function viewMemberProfile(memberId) {
+  currentFilters.author = memberId;
+  currentView = 'profile';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderCurrentView();
+}
+
+function filterPosts() {
+  return allPosts.filter(post => {
+    if (currentFilters.author && post.author_id !== currentFilters.author) return false;
+    if (currentFilters.mediaType && post.media_type !== currentFilters.mediaType) return false;
+    if (currentFilters.phase && post.phase !== currentFilters.phase) return false;
+    if (currentFilters.search) {
+      const s = currentFilters.search.toLowerCase();
+      if (!post.title.toLowerCase().includes(s) && !post.content.toLowerCase().includes(s) && !(post.author_name || '').toLowerCase().includes(s)) return false;
+    }
+    return true;
+  });
+}
+
+function updateFilter(key, value) { currentFilters[key] = value; renderCurrentView(); }
+function hasActiveFilters() { return currentFilters.search || currentFilters.author || currentFilters.mediaType || currentFilters.phase; }
+function clearAllFilters() { currentFilters = { author: '', mediaType: '', phase: '', search: '' }; renderCurrentView(); }
+function getPostCountByAuthor(id) { return allPosts.filter(p => p.author_id === id).length; }
+function formatDate(s) { return new Date(s).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); }
+function formatRelativeDate(s) {
+  const d = new Date(s), now = new Date(), diff = now - d;
+  const mins = Math.floor(diff / 60000), hours = Math.floor(diff / 3600000), days = Math.floor(diff / 86400000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function stripHtml(s) { return s.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); }
+function escapeHtml(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const id = 'toast-' + Date.now();
+  const colors = { success: 'bg-green-500', error: 'bg-red-500', info: 'bg-moto-blue-600', warning: 'bg-yellow-500' };
+  const icons = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
+  const toast = document.createElement('div');
+  toast.id = id;
+  toast.className = `toast flex items-center gap-3 px-4 py-3 rounded-xl ${colors[type]} text-white shadow-lg min-w-72`;
+  toast.innerHTML = `<span class="text-lg">${icons[type]}</span><span class="flex-1 text-sm font-medium">${message}</span><button onclick="document.getElementById('${id}').remove()" class="text-white/70 hover:text-white"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>`;
+  container.appendChild(toast);
+  setTimeout(() => { const t = document.getElementById(id); if (t) { t.style.opacity='0'; t.style.transform='translateX(100%)'; setTimeout(() => t.remove(), 300); } }, 4000);
+}
+
+// ==================== START ====================
+initSDKs();
+</script>
+</body>
+</html>
